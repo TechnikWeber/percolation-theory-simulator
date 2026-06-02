@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Zombie-Perkolation · Der Kipppunkt bei 59,27 %</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0e1014;
+    --bg2:#14171d;
+    --panel:#1c2129;
+    --panel-light:#2a313c;
+    --panel-dark:#0c0e12;
+    --ink:#e9e6da;
+    --muted:#8b919c;
+    --human:#d9a066;
+    --human-lt:#e6c08a;
+    --human-dk:#a9743f;
+    --zomb:#62a83a;
+    --zomb-lt:#8fd05f;
+    --zomb-dk:#3d6b22;
+    --danger:#d4452f;
+    --danger-dk:#8f2a1c;
+    --safe:#5fa83a;
+    --gold:#f5c542;
+    --line:#343b46;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:
+      repeating-linear-gradient(0deg, rgba(255,255,255,.012) 0 1px, transparent 1px 3px),
+      radial-gradient(120% 80% at 50% -10%, #1a2030 0%, var(--bg) 60%);
+    color:var(--ink);
+    font-family:'VT323', monospace;
+    font-size:20px;
+    min-height:100vh;
+    padding:24px 16px 60px;
+    -webkit-font-smoothing:none;
+    image-rendering:pixelated;
+  }
+  .wrap{max-width:1060px;margin:0 auto;}
+
+  /* ---------- header ---------- */
+  header{text-align:center;margin-bottom:22px;}
+  h1{
+    font-family:'Press Start 2P', monospace;
+    font-size:clamp(15px,3.4vw,26px);
+    line-height:1.5;
+    margin:0 0 14px;
+    color:var(--zomb-lt);
+    text-shadow:3px 3px 0 #000, 0 0 18px rgba(98,168,58,.35);
+    letter-spacing:1px;
+  }
+  h1 .skull{color:var(--ink);}
+  .sub{
+    color:var(--muted);
+    font-size:21px;
+    max-width:640px;margin:0 auto;line-height:1.35;
+  }
+  .pc-badge{
+    display:inline-block;margin-top:12px;
+    font-family:'Press Start 2P',monospace;font-size:12px;
+    color:var(--gold);background:#1a1407;
+    border:2px solid var(--gold);padding:7px 12px;
+    box-shadow:4px 4px 0 #000;
+  }
+
+  /* ---------- layout ---------- */
+  .grid-layout{display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:20px;align-items:start;}
+  @media(max-width:880px){.grid-layout{grid-template-columns:1fr;}}
+
+  .panel{
+    background:linear-gradient(180deg,var(--panel) 0%,var(--bg2) 100%);
+    border:3px solid var(--panel-dark);
+    border-top-color:var(--panel-light);
+    border-left-color:var(--panel-light);
+    padding:16px;
+    box-shadow:6px 6px 0 rgba(0,0,0,.45);
+  }
+  .panel h2{
+    font-family:'Press Start 2P',monospace;font-size:11px;
+    margin:0 0 14px;color:var(--ink);letter-spacing:.5px;
+    border-bottom:2px solid var(--line);padding-bottom:10px;
+  }
+
+  /* ---------- canvas ---------- */
+  .stage{display:flex;justify-content:center;background:var(--panel-dark);
+    border:3px solid #000;padding:10px;margin-bottom:14px;
+    box-shadow:inset 0 0 0 2px #20262f;}
+  canvas#world{image-rendering:pixelated;width:100%;height:auto;max-width:560px;display:block;cursor:crosshair;}
+
+  .hint{text-align:center;color:var(--muted);font-size:18px;margin-bottom:14px;}
+
+  /* ---------- controls ---------- */
+  .ctl-row{margin-bottom:16px;}
+  .ctl-label{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px;}
+  .ctl-label span:first-child{font-family:'Press Start 2P',monospace;font-size:10px;color:var(--muted);}
+  .dens-val{font-size:30px;color:var(--gold);line-height:1;}
+  .dens-val small{font-size:18px;color:var(--muted);}
+
+  .slider-wrap{position:relative;height:30px;}
+  .pc-mark{position:absolute;top:-3px;bottom:9px;width:2px;background:var(--danger);
+    box-shadow:0 0 6px var(--danger);left:59.27%;pointer-events:none;z-index:2;}
+  .pc-mark::after{content:"p_c";position:absolute;top:-15px;left:-9px;font-family:'Press Start 2P',monospace;
+    font-size:7px;color:var(--danger);white-space:nowrap;}
+  input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:14px;
+    background:linear-gradient(90deg,#2a313c,#3d6b22 59.27%,#6b2222 59.27%,#8f2a1c);
+    border:2px solid #000;margin:6px 0;cursor:pointer;}
+  input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:26px;
+    background:var(--ink);border:2px solid #000;box-shadow:2px 2px 0 rgba(0,0,0,.5);cursor:grab;}
+  input[type=range]::-moz-range-thumb{width:14px;height:26px;background:var(--ink);
+    border:2px solid #000;border-radius:0;cursor:grab;}
+
+  .btn-row{display:flex;gap:8px;flex-wrap:wrap;}
+  button{
+    font-family:'Press Start 2P',monospace;font-size:10px;
+    color:var(--ink);background:linear-gradient(180deg,#3a4350,#262c35);
+    border:2px solid #000;border-top-color:#525c6b;border-left-color:#525c6b;
+    padding:11px 12px;cursor:pointer;flex:1;min-width:96px;
+    box-shadow:3px 3px 0 #000;transition:transform .05s, box-shadow .05s;
+  }
+  button:hover{filter:brightness(1.12);}
+  button:active{transform:translate(3px,3px);box-shadow:0 0 0 #000;}
+  button.primary{background:linear-gradient(180deg,#6fbf42,#3d6b22);border-top-color:#9be06a;border-left-color:#9be06a;color:#0b1206;}
+  button.danger{background:linear-gradient(180deg,#e0573f,#8f2a1c);border-top-color:#ff8a72;border-left-color:#ff8a72;}
+  select{font-family:'VT323',monospace;font-size:20px;background:#262c35;color:var(--ink);
+    border:2px solid #000;padding:4px 8px;cursor:pointer;}
+
+  /* ---------- stats ---------- */
+  .legend{display:flex;gap:14px;flex-wrap:wrap;margin-bottom:14px;font-size:18px;color:var(--muted);}
+  .legend i{display:inline-block;width:15px;height:15px;border:2px solid #000;margin-right:5px;vertical-align:-2px;}
+  .stat{display:flex;justify-content:space-between;align-items:baseline;padding:8px 0;border-bottom:1px solid var(--line);}
+  .stat .k{font-size:18px;color:var(--muted);}
+  .stat .v{font-size:28px;color:var(--ink);}
+  .verdict{margin-top:16px;text-align:center;padding:14px 10px;border:3px solid #000;
+    font-family:'Press Start 2P',monospace;font-size:11px;line-height:1.6;
+    background:#181d24;color:var(--muted);box-shadow:inset 0 0 0 2px #000;}
+  .verdict.safe{background:#0f1f0c;color:var(--safe);border-color:var(--zomb-dk);}
+  .verdict.doom{background:#240d08;color:#ff7a63;border-color:var(--danger-dk);
+    animation:flash .9s steps(2) infinite;}
+  @keyframes flash{50%{background:#3a130b;}}
+
+  /* ---------- experiment ---------- */
+  .exp-desc{font-size:18px;color:var(--muted);line-height:1.4;margin-bottom:12px;}
+  canvas#chart{width:100%;height:auto;background:var(--panel-dark);border:2px solid #000;display:block;margin-bottom:10px;}
+  .exp-note{font-size:17px;color:var(--muted);line-height:1.4;}
+  .exp-note b{color:var(--gold);}
+
+  footer{max-width:1060px;margin:34px auto 0;color:var(--muted);font-size:17px;line-height:1.5;
+    border-top:2px solid var(--line);padding-top:16px;}
+  footer b{color:var(--ink);}
+  code{background:#000;padding:1px 6px;color:var(--gold);font-family:'VT323',monospace;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1><span class="skull">☠</span> Zombie-Perkolation <span class="skull">☠</span></h1>
+    <p class="sub">Verteile Menschen zufällig auf der Karte. Ein Biss – und die Infektion frisst sich durch alle direkt benachbarten Nachbarn. Überlebt die Menschheit? Das entscheidet sich an einer messerscharfen Grenze.</p>
+    <div class="pc-badge">SCHWELLE: p_c &asymp; 59,27 %</div>
+  </header>
+
+  <div class="grid-layout">
+    <!-- LEFT: simulation -->
+    <div>
+      <div class="panel">
+        <h2>Die Karte</h2>
+        <div class="stage">
+          <canvas id="world" width="560" height="560"></canvas>
+        </div>
+        <p class="hint">Klicke auf einen Menschen, um den Ausbruch dort zu starten &mdash; oder drücke &bdquo;Ausbruch&ldquo; f&uuml;r einen zuf&auml;lligen Biss.</p>
+
+        <div class="ctl-row">
+          <div class="ctl-label">
+            <span>Bev&ouml;lkerungsdichte</span>
+            <span class="dens-val"><span id="densNum">59</span><small> %</small></span>
+          </div>
+          <div class="slider-wrap">
+            <div class="pc-mark"></div>
+            <input type="range" id="density" min="0" max="100" step="0.5" value="59">
+          </div>
+        </div>
+
+        <div class="ctl-row">
+          <div class="ctl-label"><span>Kartengr&ouml;&szlig;e</span></div>
+          <select id="gridSize">
+            <option value="40">40 &times; 40</option>
+            <option value="60" selected>60 &times; 60</option>
+            <option value="80">80 &times; 80</option>
+          </select>
+        </div>
+
+        <div class="btn-row">
+          <button id="btnGen">Neu generieren</button>
+          <button id="btnBite" class="primary">Ausbruch!</button>
+          <button id="btnReset" class="danger">Heilen</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT: stats + experiment -->
+    <div>
+      <div class="panel" style="margin-bottom:20px;">
+        <h2>Lagebericht</h2>
+        <div class="legend">
+          <span><i style="background:var(--human)"></i>Mensch</span>
+          <span><i style="background:var(--zomb)"></i>Zombie</span>
+          <span><i style="background:#1a1e25"></i>Leer</span>
+        </div>
+        <div class="stat"><span class="k">Bev&ouml;lkerung</span><span class="v" id="sPop">0</span></div>
+        <div class="stat"><span class="k">Infiziert</span><span class="v" id="sInf">0</span></div>
+        <div class="stat"><span class="k">Anteil infiziert</span><span class="v" id="sPct">0&nbsp;%</span></div>
+        <div class="verdict" id="verdict">Starte einen Ausbruch&hellip;</div>
+      </div>
+
+      <div class="panel">
+        <h2>Das Experiment</h2>
+        <p class="exp-desc">Wie wahrscheinlich ist es, dass die Seuche die <i>ganze</i> Karte durchquert &mdash; in Abh&auml;ngigkeit von der Dichte?</p>
+        <canvas id="chart" width="290" height="210"></canvas>
+        <button id="btnExp" style="width:100%;flex:none;">Experiment starten</button>
+        <p class="exp-note" style="margin-top:10px;">Der Sprung von &bdquo;sicher&ldquo; auf &bdquo;Apokalypse&ldquo; wird mit gr&ouml;&szlig;eren Karten immer steiler &ndash; und sitzt genau auf <b>59,27&nbsp;%</b>.</p>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    <p><b>Was passiert hier?</b> Das ist <b>Site-Perkolation</b> auf einem quadratischen Gitter. Jede Zelle ist mit Wahrscheinlichkeit <code>p</code> ein Mensch. Die Infektion breitet sich nur entlang direkt verbundener Nachbarn aus. Unterhalb der kritischen Dichte zerfällt die Bevölkerung in lauter kleine, isolierte Inseln &ndash; ein Biss bleibt lokal. Oberhalb entsteht <b>schlagartig</b> ein einziger riesiger zusammenhängender Cluster, der die ganze Karte durchspannt: ein Biss genügt für die Apokalypse. Dieser <b>Phasenübergang</b> bei <code>p_c &asymp; 0,5927</code> ist exakt gemessen, aber bis heute durch <b>keine geschlossene Formel</b> herleitbar.</p>
+    <p style="margin-top:10px;">Modell nach Alemi et&nbsp;al., &bdquo;You can run, you can hide&ldquo;, Phys. Rev. E 92 (2015).</p>
+  </footer>
+</div>
+
+<script>
+(function(){
+  "use strict";
+  const world = document.getElementById('world');
+  const ctx = world.getContext('2d');
+  const chart = document.getElementById('chart');
+  const cctx = chart.getContext('2d');
+
+  const densSlider = document.getElementById('density');
+  const densNum = document.getElementById('densNum');
+  const sizeSel = document.getElementById('gridSize');
+  const sPop = document.getElementById('sPop');
+  const sInf = document.getElementById('sInf');
+  const sPct = document.getElementById('sPct');
+  const verdict = document.getElementById('verdict');
+
+  // colors
+  const C = {
+    empty:'#181d24', emptyB:'#141921',
+    humanA:'#d9a066', humanL:'#e6c08a', humanD:'#a9743f',
+    zombA:'#62a83a',  zombL:'#8fd05f',  zombD:'#3d6b22'
+  };
+
+  let N=60, cell=9, grid=null, pop=0, infected=0, animId=null;
+
+  function sizeCanvas(){
+    N = parseInt(sizeSel.value,10);
+    cell = Math.max(6, Math.floor(560/N));
+    const dim = cell*N;
+    world.width = dim; world.height = dim;
+  }
+
+  function generate(){
+    cancelAnimationFrame(animId);
+    sizeCanvas();
+    const p = parseFloat(densSlider.value)/100;
+    grid = new Uint8Array(N*N);
+    pop = 0;
+    for(let i=0;i<grid.length;i++){
+      if(Math.random()<p){ grid[i]=1; pop++; }
+    }
+    infected = 0;
+    drawAll();
+    updateStats(null);
+  }
+
+  function bevel(px,py,base,lt,dk){
+    const b = Math.max(1, Math.floor(cell*0.18));
+    ctx.fillStyle = base; ctx.fillRect(px,py,cell,cell);
+    ctx.fillStyle = lt;   ctx.fillRect(px,py,cell,b); ctx.fillRect(px,py,b,cell);
+    ctx.fillStyle = dk;   ctx.fillRect(px,py+cell-b,cell,b); ctx.fillRect(px+cell-b,py,b,cell);
+  }
+
+  function drawCell(i){
+    const x=i%N, y=(i/N)|0, px=x*cell, py=y*cell, s=grid[i];
+    if(s===0){
+      ctx.fillStyle = ((x+y)&1) ? C.empty : C.emptyB;
+      ctx.fillRect(px,py,cell,cell);
+    } else if(s===1){
+      bevel(px,py,C.humanA,C.humanL,C.humanD);
+    } else {
+      bevel(px,py,C.zombA,C.zombL,C.zombD);
+    }
+  }
+
+  function drawAll(){
+    ctx.clearRect(0,0,world.width,world.height);
+    for(let i=0;i<grid.length;i++) drawCell(i);
+  }
+
+  function clearInfection(){
+    cancelAnimationFrame(animId);
+    if(!grid) return;
+    for(let i=0;i<grid.length;i++) if(grid[i]===2){ grid[i]=1; drawCell(i); }
+    infected=0;
+    updateStats(null);
+  }
+
+  // start outbreak from a given cell index (must be a human)
+  function outbreak(start){
+    cancelAnimationFrame(animId);
+    // reset any previous infection
+    for(let i=0;i<grid.length;i++) if(grid[i]===2) grid[i]=1;
+    if(grid[start]!==1) return;
+    grid[start]=2; infected=1; drawCell(start);
+    let frontier=[start];
+    let top=false, bottom=false, left=false, right=false;
+    const checkEdge=(idx)=>{
+      const x=idx%N, y=(idx/N)|0;
+      if(y===0)top=true; if(y===N-1)bottom=true;
+      if(x===0)left=true; if(x===N-1)right=true;
+    };
+    checkEdge(start);
+
+    function frame(){
+      const next=[];
+      for(let k=0;k<frontier.length;k++){
+        const idx=frontier[k], x=idx%N, y=(idx/N)|0;
+        if(x>0       && grid[idx-1]===1){ grid[idx-1]=2; next.push(idx-1); }
+        if(x<N-1     && grid[idx+1]===1){ grid[idx+1]=2; next.push(idx+1); }
+        if(y>0       && grid[idx-N]===1){ grid[idx-N]=2; next.push(idx-N); }
+        if(y<N-1     && grid[idx+N]===1){ grid[idx+N]=2; next.push(idx+N); }
+      }
+      for(let k=0;k<next.length;k++){ infected++; checkEdge(next[k]); drawCell(next[k]); }
+      updateStats(null);
+      if(next.length){ frontier=next; animId=requestAnimationFrame(frame); }
+      else { const spans = (top&&bottom)||(left&&right); updateStats(spans); }
+    }
+    animId=requestAnimationFrame(frame);
+  }
+
+  function randomBite(){
+    if(!grid || pop===0) return;
+    // pick a random human
+    let tries=0, idx;
+    do { idx = (Math.random()*grid.length)|0; tries++; } while(grid[idx]!==1 && tries<grid.length*3);
+    if(grid[idx]!==1){ // fallback: scan
+      idx=-1; for(let i=0;i<grid.length;i++){ if(grid[i]===1){ idx=i; break; } }
+    }
+    if(idx>=0) outbreak(idx);
+  }
+
+  function updateStats(spans){
+    sPop.textContent = pop.toLocaleString('de-DE');
+    sInf.textContent = infected.toLocaleString('de-DE');
+    const pct = pop? (infected/pop*100):0;
+    sPct.textContent = pct.toFixed(1).replace('.',',')+' %';
+    if(spans===null){
+      if(infected===0){ verdict.className='verdict'; verdict.textContent='Starte einen Ausbruch…'; }
+      else { verdict.className='verdict'; verdict.textContent='Infektion breitet sich aus…'; }
+      return;
+    }
+    if(spans){
+      verdict.className='verdict doom';
+      verdict.innerHTML='☣ APOKALYPSE ☣<br>Die Seuche durchquert die ganze Karte.';
+    } else {
+      verdict.className='verdict safe';
+      verdict.innerHTML='✔ MENSCHHEIT ÜBERLEBT<br>Der Ausbruch bleibt lokal eingeschlossen.';
+    }
+  }
+
+  // ---- canvas click → targeted bite ----
+  world.addEventListener('click', (e)=>{
+    if(!grid) return;
+    const r = world.getBoundingClientRect();
+    const x = Math.floor((e.clientX-r.left)/r.width  * N);
+    const y = Math.floor((e.clientY-r.top )/r.height * N);
+    if(x<0||y<0||x>=N||y>=N) return;
+    const idx=y*N+x;
+    if(grid[idx]===1) outbreak(idx);
+    else if(grid[idx]===2) { clearInfection(); }
+  });
+
+  // ---- controls ----
+  densSlider.addEventListener('input', ()=>{
+    densNum.textContent = Math.round(parseFloat(densSlider.value));
+  });
+  densSlider.addEventListener('change', generate);
+  sizeSel.addEventListener('change', generate);
+  document.getElementById('btnGen').addEventListener('click', generate);
+  document.getElementById('btnBite').addEventListener('click', randomBite);
+  document.getElementById('btnReset').addEventListener('click', clearInfection);
+
+  // ================= EXPERIMENT =================
+  // For density p, does a top→bottom spanning cluster exist?
+  function percolates(M,p){
+    const g=new Uint8Array(M*M);
+    for(let i=0;i<g.length;i++) g[i]=(Math.random()<p)?1:0;
+    const stack=[];
+    for(let x=0;x<M;x++){ if(g[x]===1){ g[x]=2; stack.push(x); } }
+    while(stack.length){
+      const idx=stack.pop(), x=idx%M, y=(idx/M)|0;
+      if(y===M-1) return true;
+      if(x>0   && g[idx-1]===1){ g[idx-1]=2; stack.push(idx-1); }
+      if(x<M-1 && g[idx+1]===1){ g[idx+1]=2; stack.push(idx+1); }
+      if(y>0   && g[idx-M]===1){ g[idx-M]=2; stack.push(idx-M); }
+      if(y<M-1 && g[idx+M]===1){ g[idx+M]=2; stack.push(idx+M); }
+    }
+    return false;
+  }
+
+  const EX = { M:64, trials:24, lo:0.40, hi:0.75 };
+  let results=[];
+
+  function runExperiment(){
+    const btn=document.getElementById('btnExp');
+    btn.disabled=true; btn.textContent='läuft…';
+    results=[];
+    const dens=[];
+    for(let p=EX.lo;p<=EX.hi+1e-9;p+=0.0125) dens.push(+p.toFixed(4));
+    let i=0;
+    (function chunk(){
+      const end=Math.min(i+2,dens.length);
+      for(;i<end;i++){
+        let s=0;
+        for(let t=0;t<EX.trials;t++) if(percolates(EX.M,dens[i])) s++;
+        results.push({p:dens[i], q:s/EX.trials});
+      }
+      drawChart();
+      if(i<dens.length) requestAnimationFrame(chunk);
+      else { btn.disabled=false; btn.textContent='Nochmal'; }
+    })();
+  }
+
+  function drawChart(){
+    const W=chart.width, H=chart.height, m={l:34,r:8,t:10,b:24};
+    const pw=W-m.l-m.r, ph=H-m.t-m.b;
+    const X=p=>m.l+(p-EX.lo)/(EX.hi-EX.lo)*pw;
+    const Y=q=>m.t+(1-q)*ph;
+    cctx.clearRect(0,0,W,H);
+    cctx.fillStyle='#0c0e12'; cctx.fillRect(0,0,W,H);
+    // grid
+    cctx.strokeStyle='#262c35'; cctx.lineWidth=1; cctx.font='10px VT323'; cctx.fillStyle='#8b919c';
+    for(let q=0;q<=1.001;q+=0.5){ const yy=Y(q); cctx.beginPath(); cctx.moveTo(m.l,yy); cctx.lineTo(W-m.r,yy); cctx.stroke();
+      cctx.textAlign='right'; cctx.fillText(Math.round(q*100)+'%', m.l-4, yy+3); }
+    for(let p=0.40;p<=0.751;p+=0.1){ const xx=X(p); cctx.beginPath(); cctx.moveTo(xx,m.t); cctx.lineTo(xx,H-m.b); cctx.stroke();
+      cctx.textAlign='center'; cctx.fillText(Math.round(p*100), xx, H-m.b+13); }
+    cctx.textAlign='center'; cctx.fillText('Dichte p →', (m.l+W-m.r)/2, H-2);
+    // critical line at 0.5927
+    const xc=X(0.5927);
+    cctx.strokeStyle='#d4452f'; cctx.setLineDash([4,3]); cctx.lineWidth=2;
+    cctx.beginPath(); cctx.moveTo(xc,m.t); cctx.lineTo(xc,H-m.b); cctx.stroke(); cctx.setLineDash([]);
+    cctx.fillStyle='#ff7a63'; cctx.textAlign='left'; cctx.font='10px "Press Start 2P"';
+    cctx.fillText('59,27', xc+4, m.t+10);
+    // curve
+    cctx.font='10px VT323';
+    if(results.length){
+      cctx.strokeStyle='#8fd05f'; cctx.lineWidth=2; cctx.beginPath();
+      results.forEach((r,k)=>{ const xx=X(r.p), yy=Y(r.q); if(k===0)cctx.moveTo(xx,yy); else cctx.lineTo(xx,yy); });
+      cctx.stroke();
+      cctx.fillStyle='#62a83a';
+      results.forEach(r=>{ cctx.fillRect(X(r.p)-1.5, Y(r.q)-1.5, 3, 3); });
+    }
+  }
+
+  document.getElementById('btnExp').addEventListener('click', runExperiment);
+
+  // ---- init ----
+  generate();
+  drawChart();
+})();
+</script>
+</body>
+</html>
