@@ -4,7 +4,7 @@ Eine interaktive Browser-Simulation in Minecraft-Optik, die einen der fasziniere
 
 ## 🧟 Live-Demo
 
-👉 **[Hier ausprobieren](https://technikweber.github.io/Zombie-Perkolation/)**
+👉 **[Hier ausprobieren](https://technikweber.github.io/percolation-theory-simulator/)**
 
 Einfach den Link öffnen – die Simulation läuft direkt im Browser.
 
