@@ -8,8 +8,6 @@ Eine interaktive Browser-Simulation in Minecraft-Optik, die einen der fasziniere
 
 Einfach den Link öffnen – die Simulation läuft direkt im Browser.
 
-> *(Den Link an den tatsächlichen Repo-Namen anpassen.)*
-
 ## Worum geht es?
 
 Verteile Menschen zufällig auf einer Karte. Ein Einziger wird zum Zombie und infiziert jeden, der direkt neben ihm steht. Ob die Menschheit überlebt, entscheidet allein die **Bevölkerungsdichte** – und zwar an einer messerscharfen Grenze:
