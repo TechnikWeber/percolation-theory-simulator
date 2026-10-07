@@ -74,4 +74,4 @@ Alemi, Alexander A., et al. *„You can run, you can hide: The epidemiology and 
 
 ## Lizenz
 
-*(z. B. MIT – nach Wunsch ergänzen)*
+[MIT](LICENSE).
