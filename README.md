@@ -1,77 +1,97 @@
-# ☠ Zombie-Perkolation — Der Kipppunkt bei 59,27 %
+# ☠ Zombie percolation — the tipping point at 59.27 %
 
-Eine interaktive Browser-Simulation in Minecraft-Optik, die einen der faszinierendsten Effekte der Mathematik sichtbar macht: den **Phasenübergang** der Perkolationstheorie. Komplett in HTML, CSS und JavaScript – kein Backend, keine Installation.
+<p>
+  <a href="https://technikweber.github.io/percolation-theory-simulator/"><img alt="Live demo" src="https://img.shields.io/badge/live%20demo-open-brightgreen"></a>
+  <img alt="Runs in the browser" src="https://img.shields.io/badge/runs%20in-the%20browser-blue">
+  <img alt="UI language: German" src="https://img.shields.io/badge/UI-Deutsch-informational">
+  <a href="LICENSE"><img alt="License: MIT" src="https://img.shields.io/badge/license-MIT-green"></a>
+</p>
 
-## 🧟 Live-Demo
+An interactive browser simulation in Minecraft style that makes one of the most
+fascinating effects in mathematics visible: the **phase transition** of percolation
+theory. Plain HTML, CSS and JavaScript — no back end, nothing to install.
 
-👉 **[Hier ausprobieren](https://technikweber.github.io/percolation-theory-simulator/)**
+👉 **[Try it](https://technikweber.github.io/percolation-theory-simulator/)**
 
-Einfach den Link öffnen – die Simulation läuft direkt im Browser.
+## What it is about
 
-## Worum geht es?
+Scatter people randomly across a map. A single one turns into a zombie and infects
+everyone standing right next to them. Whether humanity survives depends only on the
+**population density** — and on a razor-sharp threshold:
 
-Verteile Menschen zufällig auf einer Karte. Ein Einziger wird zum Zombie und infiziert jeden, der direkt neben ihm steht. Ob die Menschheit überlebt, entscheidet allein die **Bevölkerungsdichte** – und zwar an einer messerscharfen Grenze:
+- **Just below ≈ 59.27 %:** the population breaks into many small, isolated islands. A
+  bite stays locked in locally → humanity survives.
+- **Just above:** all of a sudden one giant connected cluster spans the whole map. A
+  single bite sets off a chain reaction → apocalypse.
 
-- **Knapp unter ≈ 59,27 %:** Die Bevölkerung zerfällt in lauter kleine, isolierte Inseln. Ein Biss bleibt lokal eingeschlossen → die Menschheit überlebt.
-- **Knapp darüber:** Schlagartig entsteht ein einziger riesiger zusammenhängender Cluster, der die ganze Karte durchspannt. Ein einziger Biss löst eine Kettenreaktion aus → Apokalypse.
+This jump from "perfectly safe" to "total escalation" is a **phase transition** (tipping
+point) — the same mathematical phenomenon behind uncontrollable forest fires, exploding
+epidemics and system collapses such as the 2008 financial crisis.
 
-Dieser Sprung von „absolut sicher" zu „totale Eskalation" ist ein **Phasenübergang** (Tipping Point) – dasselbe mathematische Phänomen, das hinter unkontrollierbaren Waldbränden, explodierenden Epidemien und Systemkollapsen wie der Finanzkrise 2008 steckt.
+## The mathematics behind it
 
-## Die Mathematik dahinter
+This is **site percolation** on a square lattice with a 4-neighbourhood. Each cell is
+occupied with probability `p`; the infection only spreads along directly connected
+neighbours.
 
-Das ist **Site-Perkolation** auf einem quadratischen Gitter mit 4er-Nachbarschaft. Jede Zelle ist mit Wahrscheinlichkeit `p` besetzt; die Infektion breitet sich nur entlang direkt verbundener Nachbarn aus.
-
-Der kritische Schwellenwert liegt bei:
+The critical threshold is:
 
 ```
-p_c ≈ 0,592746…
+p_c ≈ 0.592746…
 ```
 
-Das Verblüffende: Dieser Wert taucht in **jeder** Computersimulation auf, ist hochpräzise gemessen – aber bis heute konnte ihn **kein einziger Mathematiker durch eine exakte, geschlossene Formel herleiten**. Genau das macht ihn zu einem der großen offenen Rätsel.
+The striking part: this value shows up in **every** computer simulation and has been
+measured with high precision — yet to this day **nobody has derived it with an exact,
+closed formula**. That makes it one of the great open puzzles.
 
-## Funktionen
+## Features
 
-- **Interaktive Karte** – Menschen werden zufällig mit einstellbarer Dichte verteilt
-- **Schieberegler** mit markierter kritischer Grenze bei 59,27 %
-- **Ausbruch starten** per Klick auf einen Menschen oder per Zufallsbiss
-- **Animierte Ausbreitung** der Infektion entlang verbundener Nachbarn
-- **Live-Lagebericht** – Bevölkerung, Infiziertenzahl, Anteil und Verdikt (Überleben / Apokalypse)
-- **Experiment-Modus** – baut die S-Kurve der Perkolations-Wahrscheinlichkeit gegen die Dichte auf und zeigt, wie der Übergang exakt bei 59,27 % sitzt
-- Drei Kartengrößen (40×40 bis 80×80)
+- **Interactive map** — people are placed randomly at an adjustable density
+- **Slider** with the critical threshold at 59.27 % marked
+- **Start an outbreak** by clicking a person or with a random bite
+- **Animated spread** of the infection along connected neighbours
+- **Live situation report** — population, number infected, share and verdict
+  (survival / apocalypse)
+- **Experiment mode** — builds the S-curve of percolation probability against density and
+  shows how the transition sits exactly at 59.27 %
+- Three map sizes (40×40 to 80×80)
 
-## Bedienung
+## Controls
 
-| Aktion | Wirkung |
+| Action | Effect |
 |---|---|
-| **Schieberegler** | Bevölkerungsdichte einstellen |
-| **Klick auf einen Menschen** | Ausbruch genau dort starten |
-| **Ausbruch!** | Biss an zufälliger Stelle |
-| **Heilen** | Infektion zurücksetzen |
-| **Neu generieren** | Karte neu auswürfeln |
-| **Experiment starten** | Schwellenwert-Kurve berechnen |
+| **Slider** | Set the population density |
+| **Click on a person** | Start the outbreak exactly there |
+| **Ausbruch!** (outbreak) | Bite at a random spot |
+| **Heilen** (heal) | Reset the infection |
+| **Neu generieren** (regenerate) | Roll a new map |
+| **Experiment starten** | Calculate the threshold curve |
 
-Tipp: Schieb die Dichte einmal von 57 % auf 61 % und starte jeweils einen Ausbruch – der Unterschied zwischen lokalem Vorfall und vollständiger Auslöschung ist verblüffend.
+Tip: move the density from 57 % to 61 % and start an outbreak each time — the difference
+between a local incident and complete extinction is striking.
 
-## Lokal ausführen
+The interface is in German.
 
-Reines Frontend – einfach klonen und die Datei im Browser öffnen:
+## Run it locally
 
 ```bash
-git clone https://github.com/technikweber/Zombie-Perkolation.git
+git clone https://github.com/TechnikWeber/percolation-theory-simulator.git
 ```
 
-Dann `zombie-perkolation.html` (bzw. `index.html`) öffnen. Für die Pixel-Schriften wird eine Internetverbindung benötigt (Google Fonts).
+Then open `index.html` in a browser. The pixel fonts need an internet connection (Google
+Fonts).
 
-## Technik
+## Technology
 
-- HTML5 Canvas für das Gitter und das Diagramm
-- Vanilla JavaScript (Flood-Fill / iterative Tiefensuche für die Cluster)
-- CSS mit Pixel-Schriften (Press Start 2P & VT323)
+- HTML5 canvas for the grid and the chart
+- Vanilla JavaScript (flood fill / iterative depth-first search for the clusters)
+- CSS with pixel fonts (Press Start 2P & VT323)
 
-## Quelle & mehr zum Thema
+## Source and further reading
 
-Alemi, Alexander A., et al. *„You can run, you can hide: The epidemiology and statistical mechanics of zombies."* Physical Review E **92**.5 (2015): 052801.
+Alemi, Alexander A., et al. *"You can run, you can hide: The epidemiology and statistical
+mechanics of zombies."* Physical Review E **92**.5 (2015): 052801.
 
-## Lizenz
+## License
 
 [MIT](LICENSE).
